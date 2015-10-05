@@ -14,6 +14,12 @@ int main(int argc, const char* argv[]) {
 	
 	while (nextWord()) {
 		unsigned int p, q;
+
+		if (word[0] == '#') {
+			optionWriter();
+			continue;
+		}
+
 		p = atoi(word);
 		nextWord(); //	'/'
 		nextWord();

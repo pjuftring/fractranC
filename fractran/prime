@@ -1,8 +1,8 @@
 // Conway's prime-generating fractran program
 
-// #input	2^n
-// #output	2^n
-// #runs forever
+#input	2
+#output	2^n
+#runs forever
 
 17	/	91
 78	/	85

@@ -14,13 +14,18 @@ extern char word[MAX_WORD_LENGTH + 1];
 void initTokenizer(const char* path);
 void killTokenizer();
 int nextWord();
+void verifyWord(char* txt1, char* txt2);
+unsigned int circumflexToNumber();
+unsigned int wordIsNumber();
 
 //	Output.c
 #define MAX_INSTRUCTION_AMOUNT 4096
+#define MAX_INPUT_OUTPUT_AMOUNT 5
 extern unsigned int instruction[MAX_INSTRUCTION_AMOUNT * 2];
 extern unsigned int instructionSize;
 void initWriter(const char* path);
 void instructionWriter(unsigned int p, unsigned int q);
+void optionWriter();
 void killWriter();
 
 // Prime.c
