@@ -8,11 +8,13 @@ struct {
 	unsigned int runsForever;
 	unsigned int staticInput;
 	unsigned int staticInputData;
+	unsigned int directInput;
+	unsigned int directOutput;
 	unsigned int input[MAX_INPUT_OUTPUT_AMOUNT];
 	unsigned int output[MAX_INPUT_OUTPUT_AMOUNT];
 	unsigned int inputAmount;
 	unsigned int outputAmount;
-}option = { 0, 0, 0, {0}, {0}, 0, 0};
+}option = { 0, 0, 0, 0, 0, {0}, {0}, 0, 0};
 
 void initWriter(const char* path) {
 	outputPath = path;
@@ -35,6 +37,8 @@ void optionWriter() {
 		if (wordIsNumber()) {
 			option.staticInput = 1;
 			option.staticInputData = atoi(word);
+		} else if (word[0] == 'n') {
+			option.directInput = 1;
 		} else {
 			option.staticInput = 0;
 			if (option.inputAmount == MAX_INPUT_OUTPUT_AMOUNT){
@@ -47,7 +51,9 @@ void optionWriter() {
 	case 'o':
 		verifyWord(word, "output");
 		nextWord();
-		if (option.outputAmount == MAX_INPUT_OUTPUT_AMOUNT) {
+		if (word[0] == 'n') {
+			option.directOutput = 1;
+		} else {
 			if (option.outputAmount == MAX_INPUT_OUTPUT_AMOUNT) {
 				tragicFail("Too many output options. (Adjust MAX_INPUT_OUTPUT_AMOUNT)");
 			}
@@ -87,7 +93,65 @@ void killWriter() {
 
 	FILE* outputFile = stdout;
 
-	fprintf(outputFile, "#include <stdio.h>\n#include <stdlib.h>\n\nint main(){\n\tlong varList[%i]={0};\n\tvarList[0]=27;\n\tvarList[1]=15;\n\n\tdo {\n", usedPrimeListLength);
+	fputs("//Generated with fractranC https://github.com/pjuftring/fractranC \n", outputFile);
+	if (option.directOutput) {
+		fputs("#include <math.h>\n", outputFile);
+	}
+	fputs("#include <stdio.h>\n#include <stdlib.h>\n\n", outputFile);
+
+	if (option.directInput || option.directOutput) {
+		fprintf(outputFile, "const unsigned int usedPrimes[%d] = {", usedPrimeListLength);
+		for (i = 0; i < usedPrimeListLength; i++) {
+			if (i > 0) {
+				fprintf(outputFile, ", %d", usedPrimeList[i]);
+			} else {
+				fprintf(outputFile, "%d", usedPrimeList[i]);
+			}
+		}
+		fputs("};\n\n", outputFile);
+	}
+	if (option.directInput) {
+		fprintf(outputFile, "unsigned int factorize(unsigned int input, unsigned int varList[%d]){\n"
+								"\tunsigned int i;\n"
+								"\tfor (i = 0; i < %d; i++){\n"
+									"\t\twhile((input %% usedPrimes[i]) == 0){\n"
+										"\t\t\tvarList[i]++;\n"
+									"\t\t\tinput /= usedPrimes[i];\n"
+									"\t\t}\n"
+								"\t}\n"
+								"\treturn input;"
+							"}\n\n", usedPrimeListLength, usedPrimeListLength);
+	}
+	if (option.directOutput) {
+		fprintf(outputFile, "unsigned int unFactorize(unsigned int varList[%d]){\n"
+								"\tunsigned int i, returnValue = 1;\n"
+								"\tfor (i = 0; i < %d; i++) {\n"
+									"\t\treturnValue *= pow(usedPrimes[i], varList[i]);\n"
+								"\t}\n"
+								"\treturn returnValue;\n"
+							"}\n\n", usedPrimeListLength, usedPrimeListLength);
+	}
+	fprintf(outputFile, "int main(int argc, char* argv[]){\n\tlong varList[%i]={0};\n", usedPrimeListLength);
+	if (option.staticInput) {
+		fprintf(outputFile, "\factorize(%d, varList);\n\n", option.staticInputData);
+	} else if (option.directInput){
+		fputs(	"\tif (argc < 2){\n"	// Has to be changed
+					"\t\tfputs(\"Input value expected!\", stderr);\n"
+					"\t\treturn EXIT_FAILURE;\n"
+				"\t} else {\n"
+					"\t\tfactorize(atoi(argv[1]), varList);\n"
+				"\t}\n\n", outputFile);
+	} else {
+		fprintf(outputFile,	"\tif (argc < %d){\n"
+								"\t\tfputs(\"At least %d input value(s) expected!\", stderr);\n"
+								"\t\treturn EXIT_FAILURE;\n"
+							"\t} else {\n", option.inputAmount, option.inputAmount);
+		for (i = 0; i < option.inputAmount; i++) {
+			fprintf(outputFile, "\t\tvarList[%d] = atoi(argv[%d]);\n", getPositionOfPrime(usedPrimeList[i]), i + 1);
+		}
+		fputs(				"\t}\n\n", outputFile);
+	}
+	fputs("\tdo {\n", outputFile);
 	for (i = 0; i < instructionSize; i++) {
 		unsigned int p, q;
 		int isFirstComparison = 1;
@@ -115,12 +179,27 @@ void killWriter() {
 		}
 		fputs("\t\t\tcontinue;\n\t\t}\n", outputFile);
 	}
-	if (option.runsForever) {
-		fputs("\t\tprintf(\"%d, \", varList[0]);", outputFile);
+	if (option.directOutput) {
+		fputs("\t\tprintf(\"%d\\n\", unFactorize(varList));\n", outputFile);
 	} else {
-		fputs("\t\tprintf(\"%d\n\", varList[0]);\n\t\treturn EXIT_SUCCESS;", outputFile);
+		fputs("\t\tprintf(\"%d", outputFile);
+		for (i = 1; i < option.outputAmount; i++) {
+			fputs(", %d", outputFile);
+		}
+		fputs("\\n\", ", outputFile);
+		for (i = 0; i < option.outputAmount; i++) {
+			if (i == 0) {
+				fprintf(outputFile, "varList[%d]", getPositionOfPrime(option.output[i]));
+			} else {
+				fprintf(outputFile, ", varList[%d]", getPositionOfPrime(option.output[i]));
+			}
+		}
+		fputs(");\n", outputFile);
 	}
-	fputs("\n\t}while(1);\n}", outputFile);
+	if (!option.runsForever) {
+		fputs("\t\treturn EXIT_SUCCESS;\n", outputFile);
+	}
+	fputs("\t}while(1);\n}", outputFile);
 
 	fclose(outputFile);
 }

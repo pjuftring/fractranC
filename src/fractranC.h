@@ -39,6 +39,7 @@ extern unsigned int usedPrimeList[MAX_PRIME_AMOUNT];
 extern unsigned int usedPrimeListLength;
 void determineUsedPrimes();
 void factorize(unsigned int l, int factors[MAX_PRIME_AMOUNT], enum factorType type);
+unsigned int getPositionOfPrime(unsigned int p);
 
 
 #endif

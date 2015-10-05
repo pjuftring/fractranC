@@ -1,4 +1,7 @@
 //	Simple testfile
-//	2^n*m => m, where 2 doesn't divide m
 
-1	/	2
+#input 2^n
+#input 3^n
+#output 2^n
+
+2	/	3

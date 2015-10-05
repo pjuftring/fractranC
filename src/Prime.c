@@ -49,3 +49,14 @@ void factorize(unsigned int l, int factors[MAX_PRIME_AMOUNT], enum factorType ty
 		tragicFail("Couldn't remember all used primes. (Adjust MAX_PRIME_AMOUNT!)");
 	}
 }
+
+unsigned int getPositionOfPrime(unsigned int p) {
+	unsigned int i;
+	for (i = 0; i < usedPrimeListLength; i++) {
+		if (usedPrimeList[i] == p) {
+			return i;
+		}
+	}
+	tragicFail("Prime %d (referenced in #input or #output) is not part of the FRACTRAN-code.");
+	return 0;
+}
