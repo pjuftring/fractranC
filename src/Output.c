@@ -55,7 +55,7 @@ void killWriter() {
 		}
 		fputs("\t\t\tcontinue;\n\t\t}\n", outputFile);
 	}
-	fputs("\t\treturn varList[0];\n\t}while(1);\n}", outputFile);
+	fputs("\t\treturn varList[0];\n\t}while(1);\n}\n\n", outputFile);
 
 	fclose(outputFile);
 }

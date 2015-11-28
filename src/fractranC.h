@@ -1,9 +1,12 @@
 #ifndef FRACTRANC_FRACTRANC_H_
 #define FRACTRANC_FRACTRANC_H_
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+
+#define ERR_MEMORY_ALLOC	"Memory cannot be allocated"
 
 //	fractranC.c
 void tragicFail(const char* error);

@@ -4,8 +4,10 @@
 *.opensdf
 *.sdf
 *.ilk
+*.o
 
 VSProject/.vs/
 VSProject/Release/
 VSProject/Debug/
 VSProject/x64/
+
