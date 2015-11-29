@@ -1,11 +1,10 @@
 #include "fractranC.h"
+#include <ctype.h>
 
 char word[MAX_WORD_LENGTH + 1] = { 0 };
 char* inputBuffer = NULL;
 unsigned long fileSize = 0;
 unsigned long filePosition = 0;
-
-int isSpace(char c);
 
 void initTokenizer(const char* path) {
 	/*FILE* inputFile = fopen(path, "rb");
@@ -14,17 +13,29 @@ void initTokenizer(const char* path) {
 	}*/
 
 	FILE* inputFile = stdin;
+	
+	int length = 0, capacity = 100;
 
-	fseek(inputFile, 0, SEEK_END);
-	fileSize = ftell(inputFile);
-	fseek(inputFile, 0, SEEK_SET);
-
-	inputBuffer = malloc(fileSize);
+	inputBuffer = malloc(capacity);
 	if (inputBuffer == NULL) {
-		tragicFail("Memeory can not be allocated.");
+		tragicFail(ERR_MEMORY_ALLOC);
+		assert(0);
 	}
+	inputBuffer[0] = '\0';
 
-	fread(inputBuffer, 1, fileSize, inputFile);
+	do{
+		length = strlen(inputBuffer);
+		if(capacity - length <= 1){
+			void *n = realloc(inputBuffer, capacity += 100);
+			if(n == NULL){
+				free(inputBuffer);
+				tragicFail(ERR_MEMORY_ALLOC);
+				assert(0);
+			}
+		}
+	}while(fgets(inputBuffer, capacity - length, inputFile) != NULL);
+
+	fileSize = strlen(inputBuffer);
 
 	fclose(inputFile);
 }
@@ -32,7 +43,7 @@ void initTokenizer(const char* path) {
 int nextWord() {
 	int wordPosition = 0;
 
-	while (isSpace(inputBuffer[filePosition]) && (filePosition < fileSize)) {
+	while (isspace(inputBuffer[filePosition]) && (filePosition < fileSize)) {
 		filePosition++;
 	}
 
@@ -55,7 +66,7 @@ int nextWord() {
 		return 1;
 	}
 
-	while ((!isSpace(inputBuffer[filePosition])) && (filePosition < fileSize) && (wordPosition <= MAX_WORD_LENGTH)) {
+	while ((!isspace(inputBuffer[filePosition])) && (filePosition < fileSize) && (wordPosition <= MAX_WORD_LENGTH)) {
 		word[wordPosition] = inputBuffer[filePosition];
 		filePosition++;
 		wordPosition++;
@@ -69,8 +80,3 @@ void killTokenizer() {
 	free(inputBuffer);
 }
 
-// Tokenizer's Little Helper Functions
-
-int isSpace(char c) {
-	return ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r'));
-}
